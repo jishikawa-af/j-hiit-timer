@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="HIIT favicon">
+  <defs>
+    <linearGradient id="fire" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffd36a"/>
+      <stop offset="0.5" stop-color="#ff7b00"/>
+      <stop offset="1" stop-color="#8f1f00"/>
+    </linearGradient>
+    <linearGradient id="ice" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d9f6ff"/>
+      <stop offset="0.55" stop-color="#7fd2ff"/>
+      <stop offset="1" stop-color="#1a7fb8"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="64" height="64" rx="14" fill="#10161d"/>
+  <path d="M10 54 C14 40, 24 32, 30 18 C35 30, 43 40, 54 54 Z" fill="url(#fire)"/>
+  <path d="M14 56 C18 46, 24 44, 32 36 C40 44, 46 46, 50 56 Z" fill="url(#ice)" opacity="0.95"/>
+  <circle cx="24" cy="22" r="3" fill="#fff3c8" opacity="0.9"/>
+  <circle cx="40" cy="20" r="2.4" fill="#dff4ff" opacity="0.9"/>
+</svg>

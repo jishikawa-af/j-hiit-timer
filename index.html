@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HIIT Timer</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="main.css" />
+</head>
+
+<body class="work-theme">
+  <div class="scene">
+    <div id="workScreen" class="screen work-bg active" aria-hidden="true">
+      <div class="heat-wave"></div>
+      <div class="embers" id="embers"></div>
+      <div class="lava"></div>
+    </div>
+
+    <div id="restScreen" class="screen rest-bg" aria-hidden="true">
+      <div class="aurora"></div>
+      <div class="snow" id="snow"></div>
+      <div class="snow-ground"></div>
+      <div class="penguin" aria-hidden="true">
+        <div class="body">
+          <div class="belly"></div>
+          <div class="wing left"></div>
+          <div class="wing right"></div>
+          <div class="foot left"></div>
+          <div class="foot right"></div>
+        </div>
+        <div class="head">
+          <div class="face">
+            <div class="eye left"></div>
+            <div class="eye right"></div>
+            <div class="beak"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <main class="app">
+    <section class="panel">
+      <div class="topbar">
+        <div class="title">HIIT TIMER</div>
+        <div id="phaseBadge" class="phase-badge">WORK</div>
+      </div>
+
+      <div class="timer" id="timerDisplay">00:30</div>
+
+      <div class="progress" aria-hidden="true">
+        <div id="progressBar" class="progress-bar"></div>
+      </div>
+
+      <div class="meta">
+        <div class="card">
+          <div class="label">現在ラウンド</div>
+          <div class="value"><span id="roundNow">1</span> / <span id="roundTotal">8</span></div>
+        </div>
+        <div class="card">
+          <div class="label">フェーズ</div>
+          <div class="value" id="phaseText">動く時間</div>
+        </div>
+        <div class="card">
+          <div class="label">残り総時間</div>
+          <div class="value" id="remainingTotal">06:50</div>
+        </div>
+      </div>
+
+      <div class="settings">
+        <div class="field">
+          <label for="workSeconds">動く時間</label>
+          <div class="input-shell">
+            <button class="step-btn" type="button" data-input="workSeconds" data-delta="-5"
+              aria-label="動く時間を5秒減らす">-</button>
+            <input id="workSeconds" type="number" min="1" max="3600" step="1" inputmode="numeric" value="30" />
+            <span class="unit">秒</span>
+            <button class="step-btn" type="button" data-input="workSeconds" data-delta="5"
+              aria-label="動く時間を5秒増やす">+</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="restSeconds">レスト</label>
+          <div class="input-shell">
+            <button class="step-btn" type="button" data-input="restSeconds" data-delta="-5"
+              aria-label="レストを5秒減らす">-</button>
+            <input id="restSeconds" type="number" min="1" max="3600" step="1" inputmode="numeric" value="20" />
+            <span class="unit">秒</span>
+            <button class="step-btn" type="button" data-input="restSeconds" data-delta="5"
+              aria-label="レストを5秒増やす">+</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="rounds">回数</label>
+          <div class="input-shell">
+            <button class="step-btn" type="button" data-input="rounds" data-delta="-1" aria-label="回数を1減らす">-</button>
+            <input id="rounds" type="number" min="1" max="999" step="1" inputmode="numeric" value="8" />
+            <span class="unit">回</span>
+            <button class="step-btn" type="button" data-input="rounds" data-delta="1" aria-label="回数を1増やす">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="lockHint" class="lock-hint" aria-live="polite"></div>
+
+      <div class="presets" aria-label="おすすめプリセット">
+        <button class="preset-btn" type="button" data-work="20" data-rest="10" data-rounds="8">脂肪燃焼 20/10 x8</button>
+        <button class="preset-btn" type="button" data-work="30" data-rest="15" data-rounds="10">バランス 30/15 x10</button>
+        <button class="preset-btn" type="button" data-work="40" data-rest="20" data-rounds="8">高強度 40/20 x8</button>
+        <button class="preset-btn" type="button" data-work="30" data-rest="30" data-rounds="4">りさぷり 30/30 x4</button>
+      </div>
+
+      <div class="controls">
+        <button id="startBtn" class="start">開始</button>
+        <button id="pauseBtn" class="pause">一時停止</button>
+        <button id="resetBtn" class="reset">リセット</button>
+        <button id="saveBtn" class="save">今すぐ保存</button>
+      </div>
+
+      <div class="sound-row">
+        <label class="sound-toggle" for="pauseOnHidden">
+          <input id="pauseOnHidden" type="checkbox" />
+          バックグラウンドで自動一時停止
+        </label>
+      </div>
+
+      <div class="volume-row">
+        <label class="sound-toggle" for="soundEnabled">
+          <input id="soundEnabled" type="checkbox" checked />
+          音声
+        </label>
+        <input id="soundVolume" class="volume-slider" type="range" min="0" max="150" step="1" value="100"
+          aria-label="音量調整" />
+        <span id="soundVolumeValue" class="volume-value">100%</span>
+      </div>
+
+      <div id="saveStatus" class="save-state" aria-live="polite"></div>
+
+      <div class="note">
+        設定は変更時に自動で localStorage へ保存。次回アクセス時も前回値を復元する。
+      </div>
+    </section>
+  </main>
+
+  <script src="main.js" defer></script>
+</body>
+
+</html>
