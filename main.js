@@ -19,10 +19,20 @@ const remainingTotal = document.getElementById("remainingTotal");
 const progressBar = document.getElementById("progressBar");
 const saveStatus = document.getElementById("saveStatus");
 const lockHint = document.getElementById("lockHint");
+const quickWorkValue = document.getElementById("quickWorkValue");
+const quickRestValue = document.getElementById("quickRestValue");
+const quickRoundsValue = document.getElementById("quickRoundsValue");
 const soundEnabledInput = document.getElementById("soundEnabled");
 const soundVolumeInput = document.getElementById("soundVolume");
 const soundVolumeValue = document.getElementById("soundVolumeValue");
 const pauseOnHiddenInput = document.getElementById("pauseOnHidden");
+const settingsModal = document.getElementById("settingsModal");
+const openSettingsBtn = document.getElementById("openSettingsBtn");
+const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+const applySettingsBtn = document.getElementById("applySettingsBtn");
+const closeSettingsBackdropBtn = document.querySelector(
+  "[data-close-settings]",
+);
 
 const startBtn = document.getElementById("startBtn");
 const pauseBtn = document.getElementById("pauseBtn");
@@ -198,6 +208,29 @@ function syncInputs() {
   workInput.value = settings.workSeconds;
   restInput.value = settings.restSeconds;
   roundsInput.value = settings.rounds;
+  updateQuickSettingsSummary();
+}
+
+function updateQuickSettingsSummary() {
+  if (quickWorkValue) quickWorkValue.textContent = String(settings.workSeconds);
+  if (quickRestValue) quickRestValue.textContent = String(settings.restSeconds);
+  if (quickRoundsValue) quickRoundsValue.textContent = String(settings.rounds);
+}
+
+function isMobileViewport() {
+  return window.matchMedia("(max-width: 640px)").matches;
+}
+
+function openSettingsModal() {
+  if (!settingsModal || !isMobileViewport()) return;
+  settingsModal.classList.add("open");
+  settingsModal.setAttribute("aria-hidden", "false");
+}
+
+function closeSettingsModal() {
+  if (!settingsModal) return;
+  settingsModal.classList.remove("open");
+  settingsModal.setAttribute("aria-hidden", "true");
 }
 
 function setInputsDisabled(disabled) {
@@ -246,6 +279,9 @@ function applyPreset(work, rest, rounds) {
   countdownMarks = new Set();
   renderStatic();
   saveSettings("プリセットを保存しました");
+  if (isMobileViewport()) {
+    closeSettingsModal();
+  }
 }
 
 function formatTime(sec) {
@@ -286,6 +322,7 @@ function renderStatic() {
   roundTotal.textContent = String(settings.rounds);
   timerDisplay.textContent = formatTime(remaining);
   remainingTotal.textContent = formatTime(calcRemainingTotal());
+  updateQuickSettingsSummary();
   updateTheme();
 
   const duration = getPhaseDuration();
@@ -537,6 +574,37 @@ startBtn.addEventListener("click", () => start(true));
 pauseBtn.addEventListener("click", pause);
 resetBtn.addEventListener("click", reset);
 saveBtn.addEventListener("click", () => saveSettings("設定を保存しました"));
+
+if (openSettingsBtn) {
+  openSettingsBtn.addEventListener("click", openSettingsModal);
+}
+
+if (closeSettingsBtn) {
+  closeSettingsBtn.addEventListener("click", closeSettingsModal);
+}
+
+if (closeSettingsBackdropBtn) {
+  closeSettingsBackdropBtn.addEventListener("click", closeSettingsModal);
+}
+
+if (applySettingsBtn) {
+  applySettingsBtn.addEventListener("click", () => {
+    saveSettings("設定を保存しました");
+    closeSettingsModal();
+  });
+}
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeSettingsModal();
+  }
+});
+
+window.addEventListener("resize", () => {
+  if (!isMobileViewport()) {
+    closeSettingsModal();
+  }
+});
 
 if (soundEnabledInput) {
   soundEnabledInput.checked = soundEnabled;
