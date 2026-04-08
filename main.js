@@ -3,8 +3,8 @@ const SOUND_STORAGE_KEY = "hiit-timer-sound-enabled-v1";
 const SOUND_VOLUME_STORAGE_KEY = "hiit-timer-sound-volume-v1";
 const PAUSE_ON_HIDDEN_STORAGE_KEY = "hiit-timer-pause-on-hidden-v1";
 const RAF_TICK_INTERVAL_MS = 80;
-const DEFAULT_SOUND_VOLUME = 0.08;
-const COUNTDOWN_SOUND_VOLUME = 0.07;
+const DEFAULT_SOUND_VOLUME = 0.16;
+const COUNTDOWN_SOUND_VOLUME = 0.14;
 
 const workInput = document.getElementById("workSeconds");
 const restInput = document.getElementById("restSeconds");
@@ -52,6 +52,7 @@ let soundVolumeScale = loadSoundVolumeScale();
 let pauseOnHidden = loadPauseOnHidden();
 let saveStatusTimer = null;
 let audioCtx = null;
+let audioUnlocked = false;
 
 let rafId = null;
 let lastTickAt = 0;
@@ -341,22 +342,36 @@ function getAudioContext() {
   return audioCtx;
 }
 
-function playTone(
-  freq,
-  ms = 140,
-  volume = DEFAULT_SOUND_VOLUME,
-  type = "sine",
-  when = 0,
-) {
-  if (!soundEnabled) return;
-
+function unlockAudioContext() {
   const ctx = getAudioContext();
-  if (!ctx) return;
+  if (!ctx || audioUnlocked) return;
 
-  if (ctx.state === "suspended") {
-    ctx.resume().catch(() => {});
+  if (ctx.state === "running") {
+    audioUnlocked = true;
+    return;
   }
 
+  ctx
+    .resume()
+    .then(() => {
+      if (ctx.state !== "running") return;
+      audioUnlocked = true;
+      // Prime output on iOS Safari so subsequent cues play reliably.
+      scheduleTone(ctx, 880, 12, 0.001, "sine", 0);
+    })
+    .catch(() => {});
+}
+
+function handlePotentialUserGesture() {
+  unlockAudioContext();
+  if (!audioUnlocked) return;
+
+  ["pointerdown", "touchstart", "click", "keydown"].forEach((eventName) => {
+    document.removeEventListener(eventName, handlePotentialUserGesture);
+  });
+}
+
+function scheduleTone(ctx, freq, ms, volume, type, when) {
   const startAt = ctx.currentTime + when;
   const stopAt = startAt + ms / 1000;
   const osc = ctx.createOscillator();
@@ -377,6 +392,32 @@ function playTone(
   gain.connect(ctx.destination);
   osc.start(startAt);
   osc.stop(stopAt + 0.01);
+}
+
+function playTone(
+  freq,
+  ms = 140,
+  volume = DEFAULT_SOUND_VOLUME,
+  type = "sine",
+  when = 0,
+) {
+  if (!soundEnabled) return;
+
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  if (ctx.state === "suspended") {
+    ctx
+      .resume()
+      .then(() => {
+        if (!soundEnabled) return;
+        scheduleTone(ctx, freq, ms, volume, type, when);
+      })
+      .catch(() => {});
+    return;
+  }
+
+  scheduleTone(ctx, freq, ms, volume, type, when);
 }
 
 function playSequence(notes, type = "sine") {
@@ -574,6 +615,12 @@ startBtn.addEventListener("click", () => start(true));
 pauseBtn.addEventListener("click", pause);
 resetBtn.addEventListener("click", reset);
 saveBtn.addEventListener("click", () => saveSettings("設定を保存しました"));
+
+["pointerdown", "touchstart", "click", "keydown"].forEach((eventName) => {
+  document.addEventListener(eventName, handlePotentialUserGesture, {
+    passive: true,
+  });
+});
 
 if (openSettingsBtn) {
   openSettingsBtn.addEventListener("click", openSettingsModal);
